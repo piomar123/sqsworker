@@ -1,0 +1,6 @@
+# Created by .ignore support plugin (hsz.mobi)
+target/
+.idea
+.idea_modules/
+atlassian-ide-plugin.xml
+/sqsworker.iml
