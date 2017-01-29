@@ -40,11 +40,7 @@ public class SQSWorker {
      * Do your job in loop and never end.
      */
     public void loop() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                System.out.println("Stopping server. Bye bye!");
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("Stopping server. Bye bye!")));
         simpleLog.log(LogLevel.info, "SQS worker started");
         log.info(String.format("SQS worker started on %s", config.getHostname()));
 
