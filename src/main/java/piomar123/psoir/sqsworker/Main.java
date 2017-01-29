@@ -13,6 +13,7 @@ public class Main {
     public static void main(String[] args) throws UnknownHostException {
         log.info("Server initializing..");
         Config config = new Config();
+        SimpleLogger.config(config);
         SQSWorker worker = new SQSWorker(config);
 
         worker.loop();

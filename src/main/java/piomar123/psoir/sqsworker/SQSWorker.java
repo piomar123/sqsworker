@@ -2,10 +2,14 @@ package piomar123.psoir.sqsworker;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.amazonaws.services.sqs.model.*;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import piomar123.psoir.sqsworker.SimpleLogger.LogLevel;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,17 +21,19 @@ import java.util.logging.Logger;
  * Created by Piomar on 2017-01-25.
  */
 public class SQSWorker {
+    private final Config config;
     private final AmazonEC2Client ec2;
     private final AmazonS3Client s3;
     private final AmazonSQSClient sqs;
-    private Config config;
+    private final SimpleLogger simpleLog;
     private final Logger log = Logger.getLogger(SQSWorker.class.getCanonicalName());
 
     public SQSWorker(Config config) {
         this.config = config;
-        ec2 = new AmazonEC2Client(config.getCredentialsProvider());
-        s3  = new AmazonS3Client(config.getCredentialsProvider());
-        sqs = new AmazonSQSClient(config.getCredentialsProvider());
+        ec2 = new AmazonEC2Client(config.getCredentialsProvider()).withRegion(config.REGION);
+        s3  = new AmazonS3Client(config.getCredentialsProvider()).withRegion(config.REGION);
+        sqs = new AmazonSQSClient(config.getCredentialsProvider()).withRegion(config.REGION);
+        simpleLog = SimpleLogger.getFor("worker");
     }
 
     /**
@@ -39,6 +45,7 @@ public class SQSWorker {
                 System.out.println("Stopping server. Bye bye!");
             }
         });
+        simpleLog.log(LogLevel.info, "SQS worker started");
         log.info(String.format("SQS worker started on %s", config.getHostname()));
 
         while(true){
@@ -80,8 +87,13 @@ public class SQSWorker {
             log.warning(String.format("Unknown SQS id: %s", id));
             return;
         }
+
+        String s3bucket = attrs.get("s3bucket").getStringValue();
+        String s3key = attrs.get("s3key").getStringValue();
         System.out.printf("Bucket: %s, Key: %s%n",
-                attrs.get("s3bucket").getStringValue(),
-                attrs.get("s3key").getStringValue());
+                s3bucket,
+                s3key);
+        S3Object file = s3.getObject(s3bucket, s3key);
+//        file.getObjectContent().getHttpRequest()
     }
 }
