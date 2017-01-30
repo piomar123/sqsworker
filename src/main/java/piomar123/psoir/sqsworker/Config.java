@@ -5,6 +5,7 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.regions.Regions;
 
+import java.awt.*;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -15,9 +16,13 @@ import java.net.UnknownHostException;
  */
 public class Config {
     public final Regions REGION = Regions.US_WEST_2;
-    public final String SQS_MSG_ID = "S3labSQS"; //"S3projSQS";
+    public final String SQS_MSG_ID = "S3projSQS";
     public final String SQS_URL = "https://sqs.us-west-2.amazonaws.com/983680736795/MarcinczykSQS";
     public final String DB_DOMAIN = "piotr.marcinczyk.logs"; //"piotr.marcinczyk.project.logs";
+    public final Dimension THUMBS_SIZE = new Dimension(300, 300);
+    public final String S3_KEY_PREFIX_UPLOAD = "piotr.marcinczyk/project/upload/";
+    public final String S3_KEY_PREFIX_THUMBS = "piotr.marcinczyk/project/thumbs/";
+
     private final AWSCredentialsProvider credentialsProvider;
     private final String hostname;
 

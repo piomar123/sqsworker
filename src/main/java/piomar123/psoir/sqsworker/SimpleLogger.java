@@ -1,6 +1,5 @@
 package piomar123.psoir.sqsworker;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.amazonaws.services.simpledb.model.CreateDomainRequest;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
@@ -94,7 +93,7 @@ public class SimpleLogger {
             for(Map.Entry<String, String> entry: details.entrySet()){
                 attributes.add(new ReplaceableAttribute()
                         .withName(entry.getKey())
-                        .withName(entry.getValue()));
+                        .withValue(entry.getValue()));
             }
         }
 
