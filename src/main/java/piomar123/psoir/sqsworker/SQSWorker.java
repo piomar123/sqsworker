@@ -39,9 +39,9 @@ public class SQSWorker {
 
     public SQSWorker(Config config) {
         this.config = config;
-        ec2 = new AmazonEC2Client(config.getCredentialsProvider()).withRegion(config.REGION);
-        s3  = new AmazonS3Client(config.getCredentialsProvider()).withRegion(config.REGION);
-        sqs = new AmazonSQSClient(config.getCredentialsProvider()).withRegion(config.REGION);
+        ec2 = config.ec2();
+        s3  = config.s3();
+        sqs = config.sqs();
         simpleLog = SimpleLogger.getFor("worker");
     }
 
@@ -67,8 +67,8 @@ public class SQSWorker {
         }
     }
 
-    private void receiveMessage() {
-        log.info("Waiting for orders..");
+    void receiveMessage() {
+        log.info("Checking queue..");
         ReceiveMessageRequest request = new ReceiveMessageRequest(config.SQS_URL);
         request.setMaxNumberOfMessages(1);
         request.setWaitTimeSeconds(20);
@@ -80,6 +80,7 @@ public class SQSWorker {
             log.info("No messages for you, Commander.");
             return;
         }
+        log.info("Received message.");
         Message msg = messages.get(0);
         sqs.deleteMessage(config.SQS_URL, msg.getReceiptHandle());
         Map<String, MessageAttributeValue> attrs = msg.getMessageAttributes();
@@ -96,6 +97,7 @@ public class SQSWorker {
         String s3bucket = attrs.get("s3bucket").getStringValue();
         String s3key = attrs.get("s3key").getStringValue();
         String action = attrs.get("action").getStringValue();
+        log.info("Fetching S3 object info..");
         S3Object file = s3.getObject(s3bucket, s3key);
         try {
             executeAction(file, action, attrs);
@@ -105,14 +107,14 @@ public class SQSWorker {
     }
 
     private void executeAction(S3Object source, String action, Map<String, MessageAttributeValue> attrs) throws IOException {
+        log.info("S3 object downloading..");
         CopyStream cs = new CopyStream(source.getObjectContent());
         ByteArrayInputStream bais = cs.toInputStream();
-
         switch(action){
             case Actions.Thumbnail:
                 String mime = setCorrectMimeType(source, bais);
 
-                log.info(String.format("Creating thumbnail for %s", source.getKey()));
+                log.info(String.format("Creating thumbnail for %s..", source.getKey()));
                 CopyStream outputStream = new CopyStream();
                 Thumbnails
                         .of(bais)
@@ -145,6 +147,9 @@ public class SQSWorker {
                 details.put("MIME", (mime != null) ? mime : "?");
                 simpleLog.log(LogLevel.info, "Created thumbnail", details);
 
+                break;
+            default:
+                log.warning("Unsupported action: " + action);
                 break;
         }
     }

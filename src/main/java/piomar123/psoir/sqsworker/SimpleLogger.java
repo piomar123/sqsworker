@@ -41,7 +41,7 @@ public class SimpleLogger {
 
     public static void config(Config config){
         SimpleLogger.config = config;
-        simpleDB = new AmazonSimpleDBClient(config.getCredentialsProvider()).withRegion(config.REGION);
+        simpleDB = config.simpleDB();
         CreateDomainRequest request = new CreateDomainRequest(config.DB_DOMAIN);
         simpleDB.createDomain(request);
     }
