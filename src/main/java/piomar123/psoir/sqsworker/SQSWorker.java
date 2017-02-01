@@ -190,6 +190,9 @@ public class SQSWorker {
                 MarvinImagePlugin noisePlugin = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.restoration.noiseReduction");
                 noisePlugin.process(img, imgOut);
                 break;
+            case Actions.Emboss:
+                MarvinPluginCollection.emboss(img, imgOut);
+                break;
             default:
                 throw new UnsupportedOperationException(action);
         }
@@ -263,5 +266,6 @@ public class SQSWorker {
         public final static String Edge = "edge";
         public final static String Blur = "blur";
         public final static String Noise = "noise";
+        public final static String Emboss = "emboss";
     }
 }
