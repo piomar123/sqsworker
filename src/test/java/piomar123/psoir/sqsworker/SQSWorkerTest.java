@@ -12,9 +12,10 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 /**
  * Test for SQS Worker.
@@ -36,7 +37,6 @@ public class SQSWorkerTest {
         simpleDB = mock(AmazonSimpleDBClient.class);
         config = new Config(null, "tester", ec2, s3, sqs, simpleDB);
         SimpleLogger.config(config);
-        System.out.println(config.THUMBS_SIZE);
         sut = new SQSWorker(config);
     }
 

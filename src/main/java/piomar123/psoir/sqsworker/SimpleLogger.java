@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Logger into AWS SimpleDB.
@@ -19,6 +21,7 @@ public class SimpleLogger {
     private static Config config;
     private final String module, host;
     private final static String prefix = "project-log-";
+    private final Logger log = Logger.getLogger(SimpleLogger.class.getCanonicalName());
 
     private static AmazonSimpleDBClient simpleDB;
 
@@ -96,11 +99,21 @@ public class SimpleLogger {
                         .withValue(entry.getValue()));
             }
         }
+        log.log(toLoggerLevel(level), message);
 
         PutAttributesRequest request = new PutAttributesRequest(
                 config.DB_DOMAIN,
                 prefix + UUID.randomUUID().toString(),
                 attributes);
         simpleDB.putAttributes(request);
+    }
+
+    private Level toLoggerLevel(LogLevel level) {
+        switch (level){
+            case info: return Level.INFO;
+            case warn: return Level.WARNING;
+            case error: return Level.SEVERE;
+            default: return Level.INFO;
+        }
     }
 }

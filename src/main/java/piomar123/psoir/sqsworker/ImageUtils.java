@@ -11,7 +11,6 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.Locale;
 
 /**
@@ -24,11 +23,7 @@ public class ImageUtils {
             throw new IllegalArgumentException("Quality out of bounds!");
         }
         float quality = qualityPercent / 100f;
-        ImageWriter writer = null;
-        Iterator iter = ImageIO.getImageWritersByFormatName("jpg");
-        if (iter.hasNext()) {
-            writer = (ImageWriter) iter.next();
-        }
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
         ImageOutputStream ios = ImageIO.createImageOutputStream(stream);
         writer.setOutput(ios);
         ImageWriteParam param = new JPEGImageWriteParam(Locale.getDefault());
@@ -39,7 +34,6 @@ public class ImageUtils {
         writer.dispose();
         ios.close();
     }
-
 
     public static void writeToStream(MarvinImage marvinImage, String format, OutputStream stream) {
         marvinImage.update();
