@@ -10,6 +10,8 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import marvin.MarvinPluginCollection;
 import marvin.image.MarvinImage;
+import marvin.plugin.MarvinImagePlugin;
+import marvin.util.MarvinPluginLoader;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
 import piomar123.psoir.sqsworker.SimpleLogger.LogLevel;
@@ -173,21 +175,26 @@ public class SQSWorker {
         String mime = source.getObjectMetadata().getContentType();
         String format = extensionFromMIME(mime);
         MarvinImage img = new MarvinImage(bufferedImage, format);
+        MarvinImage imgOut = img.clone();
         switch (action) {
             case Actions.Blur:
-                MarvinPluginCollection.gaussianBlur(img, img, 10);
+                MarvinPluginCollection.gaussianBlur(img, imgOut, 10);
                 break;
             case Actions.Edge:
-                MarvinPluginCollection.sobel(img, img);
+                MarvinPluginCollection.sobel(img, imgOut);
                 break;
             case Actions.Levels:
-                MarvinPluginCollection.histogramEqualization(img, img);
+                MarvinPluginCollection.histogramEqualization(img, imgOut);
+                break;
+            case Actions.Noise:
+                MarvinImagePlugin noisePlugin = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.restoration.noiseReduction");
+                noisePlugin.process(img, imgOut);
                 break;
             default:
                 throw new UnsupportedOperationException(action);
         }
         CopyStream outputStream = new CopyStream();
-        ImageUtils.writeToStream(img, format, outputStream);
+        ImageUtils.writeToStream(imgOut, format, outputStream);
         ByteArrayInputStream inputOutputStream = outputStream.toInputStream();
 
         ObjectMetadata metadata = new ObjectMetadata();
@@ -251,9 +258,10 @@ public class SQSWorker {
     }
 
     public static final class Actions {
-        final static String Thumbnail = "thumbnail";
-        final static String Levels = "levels";
-        final static String Edge = "edge";
-        final static String Blur = "blur";
+        public final static String Thumbnail = "thumbnail";
+        public final static String Levels = "levels";
+        public final static String Edge = "edge";
+        public final static String Blur = "blur";
+        public final static String Noise = "noise";
     }
 }
