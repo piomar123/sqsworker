@@ -1,5 +1,15 @@
 language: java
 sudo: false
 jdk:
-  - oraclejdk8
+- oraclejdk8
 script: mvn clean verify
+deploy:
+  provider: s3
+  access_key_id: AKIAIZTD53YY2TM5ZB7A
+  secret_access_key:
+    secure: YMaGbip8fUVOXBdktU+9CjhtV0Ii8wpFm3kRyfUmI+aHs2NHAmqev706JQDFlg7XzAdJqIl/dSZLqZ5GarvfuPs3UntP13Q60mVVGcCb6l6vn/h87Aj5UTRvBSwtJgPWUXrqRlRJ4qpS4uhOhbKG+KUBrTOpwfWOsu7zptEmxVAjsSkEqE7++oghNVfXIfM3Xna+Y0q5r6ut7g+VXexypEPB4bUjnmt7zvJ8cFVid4xm3CRoA8GHqAGdelAkBiln75dR1DGPvplX4uGxlblkq34PWM3CnjNUfwOG/gjLAadMwmsVaLe/xKzt5ABjxJhXaw4jXumHD/jImLKOXvlBWDqZTVtbEZXzRJNGqfETLs2nio/TSoE98FZaKK5LVWc5HuuplCTWrwnfRrXHBNWRImRKZObib+tOVvS5p6WfnIBEo0Gl9z6RPr4bC9ORSDyC+BBwXGgNwfYK+UDa1EmkFzh2ZHAo3WMKH2/AnkKCMJr1IZARBJSkI+1inoB+5k+uJzD9yprJiJRF00VclBxlx81gNvDyqCK+o1Tt1904K363sJR8spqaRklGZMw/xEXJhTSBmKf5JRgW9+LJ8Aef1Il0/MxSNlcVh8nLENwXrET0kGB2mqGm81zvltojFcYsaOW/zfMk0yYFkfTn8/cVm2uT8UQnJOe7akUYHPRmzlU=
+  bucket: deploy-weeia
+  upload-dir: Marcinczyk
+  acl: private
+  on:
+    repo: piomar123/sqsworker
