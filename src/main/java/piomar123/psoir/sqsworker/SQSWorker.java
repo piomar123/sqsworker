@@ -1,9 +1,9 @@
 package piomar123.psoir.sqsworker;
 
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -34,9 +34,9 @@ import java.util.logging.Logger;
  */
 public class SQSWorker {
     private final Config config;
-    private final AmazonEC2Client ec2;
-    private final AmazonS3Client s3;
-    private final AmazonSQSClient sqs;
+    private final AmazonEC2 ec2;
+    private final AmazonS3 s3;
+    private final AmazonSQS sqs;
     private final SimpleLogger simpleLog;
     private final Logger log = Logger.getLogger(SQSWorker.class.getCanonicalName());
 
@@ -116,7 +116,7 @@ public class SQSWorker {
         CopyStream cs = new CopyStream(source.getObjectContent());
         ByteArrayInputStream bais = cs.toInputStream();
 
-        if(action.equals(Actions.Thumbnail)){
+        if (action.equals(Actions.Thumbnail)) {
             String mime = setCorrectMimeType(source, bais);
             createThumbnail(source.getBucketName(), source.getKey(), bais, mime);
             return;
@@ -124,7 +124,7 @@ public class SQSWorker {
 
         try {
             processImage(source, bais, action, attrs);
-        } catch (UnsupportedOperationException uoe){
+        } catch (UnsupportedOperationException uoe) {
             simpleLog.warn(uoe.toString());
         }
     }
@@ -173,7 +173,7 @@ public class SQSWorker {
         String mime = source.getObjectMetadata().getContentType();
         String format = extensionFromMIME(mime);
         MarvinImage img = new MarvinImage(bufferedImage, format);
-        switch (action){
+        switch (action) {
             case Actions.Blur:
                 MarvinPluginCollection.gaussianBlur(img, img, 10);
                 break;
@@ -183,7 +183,8 @@ public class SQSWorker {
             case Actions.Levels:
                 MarvinPluginCollection.histogramEqualization(img, img);
                 break;
-                default: throw new UnsupportedOperationException(action);
+            default:
+                throw new UnsupportedOperationException(action);
         }
         CopyStream outputStream = new CopyStream();
         ImageUtils.writeToStream(img, format, outputStream);
@@ -196,7 +197,7 @@ public class SQSWorker {
         PutObjectRequest request = new PutObjectRequest(source.getBucketName(), s3destKey, inputOutputStream, metadata)
                 .withCannedAcl(CannedAccessControlList.Private);
 
-        log.info(String.format("Uploading [%dkB] to S3: %s", metadata.getContentLength()/1024, s3destKey));
+        log.info(String.format("Uploading [%dkB] to S3: %s", metadata.getContentLength() / 1024, s3destKey));
         s3.putObject(request);
 
         HashMap<String, String> details = new HashMap<>();
@@ -214,6 +215,7 @@ public class SQSWorker {
 
     /**
      * Strips "image/" prefix from MIME which gives file extension.
+     *
      * @param mime input MIME type
      * @return file extension
      */
@@ -223,7 +225,7 @@ public class SQSWorker {
             return "jpg";
         }
         String ext = mime.substring(PREFIX.length());
-        if(ext.equals("jpeg")) ext = "jpg";
+        if (ext.equals("jpeg")) ext = "jpg";
         return ext;
     }
 
@@ -242,8 +244,8 @@ public class SQSWorker {
                 object.getKey(),
                 object.getBucketName(),
                 object.getKey())
-            .withCannedAccessControlList(CannedAccessControlList.Private)
-            .withNewObjectMetadata(metadata);
+                .withCannedAccessControlList(CannedAccessControlList.Private)
+                .withNewObjectMetadata(metadata);
         s3.copyObject(copyRequest);
         return mime;
     }

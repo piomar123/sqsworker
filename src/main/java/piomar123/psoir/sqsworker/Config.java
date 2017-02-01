@@ -1,16 +1,18 @@
 package piomar123.psoir.sqsworker;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.auth.profile.ProfilesConfigFile;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 
 import java.awt.*;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -30,17 +32,16 @@ public class Config {
     private final AWSCredentialsProvider credentialsProvider;
     private final String hostname;
 
-    private final AmazonEC2Client ec2;
-    private final AmazonS3Client s3;
-    private final AmazonSQSClient sqs;
-    private final AmazonSimpleDBClient simpleDB;
+    private final AmazonEC2 ec2;
+    private final AmazonS3 s3;
+    private final AmazonSQS sqs;
+    private final AmazonSimpleDB simpleDB;
 
     public Config() throws UnknownHostException {
-        File configFile = new File(System.getProperty("user.home"), ".aws/credentials");
-        credentialsProvider = new ProfileCredentialsProvider(new ProfilesConfigFile(configFile), "default");
+        credentialsProvider = new DefaultAWSCredentialsProviderChain();
 
         if (credentialsProvider.getCredentials() == null) {
-            throw new RuntimeException(String.format("No AWS security credentials found in %s", configFile.getAbsolutePath()));
+            throw new RuntimeException("No AWS security credentials found by DefaultAWSCredentialsProviderChain");
         }
         hostname = InetAddress.getLocalHost().getHostName();
         ec2 = new AmazonEC2Client(credentialsProvider).withRegion(REGION);
@@ -71,19 +72,19 @@ public class Config {
         return hostname;
     }
 
-    public AmazonEC2Client ec2() {
+    public AmazonEC2 ec2() {
         return ec2;
     }
 
-    public AmazonS3Client s3() {
+    public AmazonS3 s3() {
         return s3;
     }
 
-    public AmazonSQSClient sqs() {
+    public AmazonSQS sqs() {
         return sqs;
     }
 
-    public AmazonSimpleDBClient simpleDB() {
+    public AmazonSimpleDB simpleDB() {
         return simpleDB;
     }
 }

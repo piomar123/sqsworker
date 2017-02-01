@@ -1,6 +1,6 @@
 package piomar123.psoir.sqsworker;
 
-import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.model.CreateDomainRequest;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
@@ -23,7 +23,7 @@ public class SimpleLogger {
     private final static String prefix = "project-log-";
     private final Logger log = Logger.getLogger(SimpleLogger.class.getCanonicalName());
 
-    private static AmazonSimpleDBClient simpleDB;
+    private static AmazonSimpleDB simpleDB;
 
     public enum LogLevel {
         info("info"),
