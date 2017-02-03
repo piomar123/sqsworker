@@ -8,7 +8,6 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import marvin.MarvinPluginCollection;
 import marvin.image.MarvinImage;
 import marvin.plugin.MarvinImagePlugin;
 import marvin.util.MarvinPluginLoader;
@@ -178,20 +177,25 @@ public class SQSWorker {
         MarvinImage imgOut = img.clone();
         switch (action) {
             case Actions.Blur:
-                MarvinPluginCollection.gaussianBlur(img, imgOut, 10);
+                MarvinImagePlugin blur = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.blur.gaussianBlur");
+                blur.setAttribute("radius", 16);
+                blur.process(img, imgOut);
                 break;
             case Actions.Edge:
-                MarvinPluginCollection.sobel(img, imgOut);
+                MarvinImagePlugin edge = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.edge.prewitt");
+                edge.process(img, imgOut);
                 break;
             case Actions.Levels:
-                MarvinPluginCollection.histogramEqualization(img, imgOut);
+                MarvinImagePlugin levels = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.equalization.histogramEqualization");
+                levels.process(img, imgOut);
                 break;
             case Actions.Noise:
-                MarvinImagePlugin noisePlugin = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.restoration.noiseReduction");
-                noisePlugin.process(img, imgOut);
+                MarvinImagePlugin noise = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.restoration.noiseReduction");
+                noise.process(img, imgOut);
                 break;
             case Actions.Emboss:
-                MarvinPluginCollection.emboss(img, imgOut);
+                MarvinImagePlugin emboss = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.color.emboss");
+                emboss.process(img, imgOut);
                 break;
             default:
                 throw new UnsupportedOperationException(action);
