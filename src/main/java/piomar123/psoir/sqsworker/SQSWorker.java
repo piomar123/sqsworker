@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -60,8 +61,8 @@ public class SQSWorker {
             try {
                 receiveMessage();
             } catch (Throwable t) {
-                Map<String, String> details = Collections.singletonMap("message", t.toString());
-                simpleLog.error("Error in main loop. Restarting in a few seconds", details);
+                simpleLog.error("Error in main loop. Restarting in a few seconds", t);
+                log.log(Level.SEVERE, "Error", t);
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
@@ -89,7 +90,7 @@ public class SQSWorker {
         sqs.deleteMessage(config.SQS_URL, msg.getReceiptHandle());
         Map<String, MessageAttributeValue> attrs = msg.getMessageAttributes();
         if (!attrs.containsKey("id")) {
-            log.warning("Message without id. Ignoring.");
+            simpleLog.warn("Message without id. Ignoring.");
             return;
         }
         String id = attrs.get("id").getStringValue();
@@ -101,7 +102,7 @@ public class SQSWorker {
         String s3bucket = attrs.get("s3bucket").getStringValue();
         String s3key = attrs.get("s3key").getStringValue();
         String action = attrs.get("action").getStringValue();
-        log.info("Fetching S3 object info..");
+        simpleLog.debug("Fetching S3 object info..");
         S3Object file = s3.getObject(s3bucket, s3key);
         try {
             executeAction(file, action, attrs);
@@ -111,7 +112,7 @@ public class SQSWorker {
     }
 
     private void executeAction(S3Object source, String action, Map<String, MessageAttributeValue> attrs) throws IOException {
-        log.info(String.format("S3 object downloading [%dkB]: %s..",
+        simpleLog.debug(String.format("S3 object downloading [%dkB]: %s..",
                 source.getObjectMetadata().getContentLength() / 1024,
                 source.getKey()));
         CopyStream cs = new CopyStream(source.getObjectContent());
@@ -126,12 +127,12 @@ public class SQSWorker {
         try {
             processImage(source, bais, action, attrs);
         } catch (UnsupportedOperationException uoe) {
-            simpleLog.warn(uoe.toString());
+            simpleLog.error(uoe.toString(), uoe);
         }
     }
 
     private void createThumbnail(String s3bucket, String s3key, InputStream inputStream, String mime) throws IOException {
-        log.info(String.format("Creating thumbnail for %s..", s3key));
+        simpleLog.debug(String.format("Creating thumbnail for %s..", s3key));
         CopyStream outputStream = new CopyStream();
         Thumbnails
                 .of(inputStream)
@@ -169,7 +170,7 @@ public class SQSWorker {
     }
 
     private void processImage(S3Object source, ByteArrayInputStream bais, String action, Map<String, MessageAttributeValue> attrs) throws IOException {
-        log.info(String.format("Processing image: %s..", action));
+        simpleLog.debug(String.format("Processing image: %s..", action));
         BufferedImage bufferedImage = ImageIO.read(bais);
         String mime = source.getObjectMetadata().getContentType();
         String format = extensionFromMIME(mime);
@@ -211,7 +212,7 @@ public class SQSWorker {
         PutObjectRequest request = new PutObjectRequest(source.getBucketName(), s3destKey, inputOutputStream, metadata)
                 .withCannedAcl(CannedAccessControlList.Private);
 
-        log.info(String.format("Uploading [%dkB] to S3: %s", metadata.getContentLength() / 1024, s3destKey));
+        simpleLog.debug(String.format("Uploading [%dkB] to S3: %s", metadata.getContentLength() / 1024, s3destKey));
         s3.putObject(request);
 
         HashMap<String, String> details = new HashMap<>();
@@ -222,7 +223,7 @@ public class SQSWorker {
         details.put("MIME", (mime != null) ? mime : "?");
         simpleLog.log(LogLevel.info, "Processed image", details);
 
-        log.info("Generating thumbnail..");
+        simpleLog.debug("Generating thumbnail..");
         inputOutputStream.reset();
         createThumbnail(source.getBucketName(), s3destKey, inputOutputStream, mime);
     }
@@ -247,7 +248,7 @@ public class SQSWorker {
         String mime = URLConnection.guessContentTypeFromStream(bais);
         bais.reset();
         if (mime == null) {
-            log.info("Unknown MIME type");
+            simpleLog.debug("Unknown MIME type");
             return null;
         }
         log.info(String.format("Determined MIME: %s", mime));

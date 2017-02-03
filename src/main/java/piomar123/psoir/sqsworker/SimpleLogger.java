@@ -6,10 +6,7 @@ import com.amazonaws.services.simpledb.model.PutAttributesRequest;
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +23,7 @@ public class SimpleLogger {
     private static AmazonSimpleDB simpleDB;
 
     public enum LogLevel {
+        debug("debug"),
         info("info"),
         warn("warn"),
         error("error");
@@ -58,6 +56,14 @@ public class SimpleLogger {
         return new SimpleLogger(module);
     }
 
+    public void debug(String message) {
+        log(LogLevel.debug, message, null);
+    }
+
+    public void debug(String message, Map<String, String> details) {
+        log(LogLevel.debug, message, details);
+    }
+
     public void info(String message) {
         log(LogLevel.info, message);
     }
@@ -67,6 +73,12 @@ public class SimpleLogger {
     }
 
     public void error(String message, Map<String, String> details) {
+        log(LogLevel.error, message, details);
+    }
+
+    public void error(String message, Throwable throwable) {
+        Map<String, String> details = new HashMap<>();
+        details.put("error", throwable.toString());
         log(LogLevel.error, message, details);
     }
 
@@ -99,7 +111,7 @@ public class SimpleLogger {
                         .withValue(entry.getValue()));
             }
         }
-        log.log(toLoggerLevel(level), message);
+        log.log(toLoggerLevel(level), message, details);
 
         PutAttributesRequest request = new PutAttributesRequest(
                 config.DB_DOMAIN,
