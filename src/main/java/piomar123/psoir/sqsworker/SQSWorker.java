@@ -174,7 +174,7 @@ public class SQSWorker {
         String mime = source.getObjectMetadata().getContentType();
         String format = extensionFromMIME(mime);
         MarvinImage img = new MarvinImage(bufferedImage, format);
-        MarvinImage imgOut = img.clone();
+        MarvinImage imgOut = new MarvinImage(img.getWidth(), img.getHeight());
         switch (action) {
             case Actions.Blur:
                 MarvinImagePlugin blur = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.blur.gaussianBlur");
@@ -182,7 +182,7 @@ public class SQSWorker {
                 blur.process(img, imgOut);
                 break;
             case Actions.Edge:
-                MarvinImagePlugin edge = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.edge.prewitt");
+                MarvinImagePlugin edge = MarvinPluginLoader.loadImagePlugin("org.marvinproject.image.edge.sobel");
                 edge.process(img, imgOut);
                 break;
             case Actions.Levels:

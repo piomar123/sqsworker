@@ -67,7 +67,7 @@ public class SimpleLogger {
     }
 
     public void error(String message, Map<String, String> details) {
-        log(LogLevel.error, message);
+        log(LogLevel.error, message, details);
     }
 
     public void log(LogLevel level, String message) {
