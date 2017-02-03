@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -62,7 +61,8 @@ public class SQSWorker {
             try {
                 receiveMessage();
             } catch (Throwable t) {
-                log.log(Level.SEVERE, "Error in main loop. Restarting in a few seconds", t);
+                Map<String, String> details = Collections.singletonMap("message", t.toString());
+                simpleLog.error("Error in main loop. Restarting in a few seconds", details);
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
