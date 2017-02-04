@@ -5,7 +5,9 @@ import com.amazonaws.services.simpledb.model.CreateDomainRequest;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
 
-import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +23,7 @@ public class SimpleLogger {
     private final Logger log = Logger.getLogger(SimpleLogger.class.getCanonicalName());
 
     private static AmazonSimpleDB simpleDB;
+    private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     public enum LogLevel {
         debug("debug"),
@@ -90,7 +93,7 @@ public class SimpleLogger {
         List<ReplaceableAttribute> attributes = new ArrayList<ReplaceableAttribute>();
         attributes.add(new ReplaceableAttribute()
                 .withName("timestamp")
-                .withValue(new Timestamp(System.currentTimeMillis()).toString()));
+                .withValue(ZonedDateTime.now(ZoneId.of("UTC")).format(dateFormat)));
         attributes.add(new ReplaceableAttribute()
                 .withName("host")
                 .withValue(host));
